@@ -14,7 +14,7 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    
+
 */
 
 #include <sstream>
@@ -50,8 +50,8 @@ bool ConfigReader::isAlphaNumeric(char c) const
 
 bool ConfigReader::isSpecialIdentChar(char c) const
 {
-    if ((c == '[') || (c == ']') || 
-        (c == '<') || (c == '>') || 
+    if ((c == '[') || (c == ']') ||
+        (c == '<') || (c == '>') ||
         (c == '/') || (c == '\\') ||
         (c == '.'))
     {
@@ -84,13 +84,13 @@ ConfigReader::token_t ConfigReader::tokenize(std::string &tokstr)
     if (m_tokchar=='#')
     {
         m_tokchar = m_is->get();
-        return TOK_HASH; 
+        return TOK_HASH;
     }
 
     if (m_tokchar==';')
     {
         m_tokchar = m_is->get();
-        return TOK_SEMICOL; 
+        return TOK_SEMICOL;
     }
 
     if (m_tokchar=='(')
@@ -130,7 +130,7 @@ ConfigReader::token_t ConfigReader::tokenize(std::string &tokstr)
                 tokstr += m_tokchar;
                 m_tokchar = m_is->get();
             }
-            return TOK_NUMBER;            
+            return TOK_NUMBER;
         }
         return TOK_MINUS;
     }
@@ -140,7 +140,7 @@ ConfigReader::token_t ConfigReader::tokenize(std::string &tokstr)
         tokstr = m_tokchar;
         m_tokchar = m_is->get();
         while(isAlphaNumeric(m_tokchar) || isSpecialIdentChar(m_tokchar))
-        {            
+        {
             tokstr += m_tokchar;
             m_tokchar = m_is->get();
         }
@@ -201,13 +201,13 @@ bool ConfigReader::parse(std::istream &configstream)
     m_tokchar = m_is->get();
 
     bool m_inComment = false;
-    
+
     ConfigReader::token_t tok = TOK_EOF;
     do
     {
         tok = tokenize(tokstr);
         if (!m_inComment)
-        {   
+        {
             switch(tok)
             {
             case TOK_ERR:
@@ -240,7 +240,7 @@ bool ConfigReader::parse(std::istream &configstream)
                 else if (tokstr == "FILLER")
                 {
                     if (!parseFiller()) return false;
-                }                
+                }
                 else if (tokstr == "OFFSET")
                 {
                     if (!parseOffset()) return false;
@@ -248,7 +248,7 @@ bool ConfigReader::parse(std::istream &configstream)
                 else if (tokstr == "DESIGN")
                 {
                     if (!parseDesignName()) return false;
-                }                
+                }
                 else
                 {
                     std::stringstream ss;
@@ -275,7 +275,7 @@ bool ConfigReader::parse(std::istream &configstream)
 void ConfigReader::error(const std::string &errstr)
 {
     std::stringstream ss;
-    ss << "Line " << m_lineNum << " : " << errstr; 
+    ss << "Line " << m_lineNum << " : " << errstr;
     doLog(LOG_ERROR, ss.str());
 }
 
@@ -321,7 +321,7 @@ bool ConfigReader::parsePad()
         tok = tokenize(cellname);
     }
 
-    // cell name    
+    // cell name
     if (tok != TOK_IDENT)
     {
         error("Expected a cell name\n");
@@ -401,7 +401,7 @@ bool ConfigReader::parseCorner()
 
 bool ConfigReader::parseArea()
 {
-    // AREA: x y 
+    // AREA: x y
     std::string tokstr;
     std::string w,h;
 
@@ -447,7 +447,7 @@ bool ConfigReader::parseArea()
 
 bool ConfigReader::parseGrid()
 {
-    // GRID: g 
+    // GRID: g
     std::string tokstr;
     std::string g;
 
@@ -483,7 +483,7 @@ bool ConfigReader::parseGrid()
 
 bool ConfigReader::parseSpace()
 {
-    // SPACE: g 
+    // SPACE: g
     std::string tokstr;
     std::string g;
 
@@ -520,7 +520,7 @@ bool ConfigReader::parseSpace()
 
 bool ConfigReader::parseOffset()
 {
-    // OFFSET: g 
+    // OFFSET: g
     std::string tokstr;
     std::string g;
 
