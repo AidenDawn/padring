@@ -41,6 +41,7 @@ THE SOFTWARE.
 #include <vector>
 #include <algorithm>
 #include <locale>
+#include <limits>
 
 #ifdef CXXOPTS_NO_EXCEPTIONS
 #include <iostream>
@@ -55,8 +56,8 @@ THE SOFTWARE.
 #define CXXOPTS_LINKONCE_CONST	__declspec(selectany) extern
 #define CXXOPTS_LINKONCE		__declspec(selectany) extern
 #else
-#define CXXOPTS_LINKONCE_CONST	
-#define CXXOPTS_LINKONCE		
+#define CXXOPTS_LINKONCE_CONST
+#define CXXOPTS_LINKONCE
 #endif
 
 #ifndef CXXOPTS_NO_REGEX
@@ -1546,7 +1547,7 @@ class ParseResult
     Iterator(const Iterator&) = default;
 
 // GCC complains about m_iter not being initialised in the member
-// initializer list 
+// initializer list
 CXXOPTS_DIAGNOSTIC_PUSH
 CXXOPTS_IGNORE_WARNING("-Weffc++")
     Iterator(const ParseResult *pr, bool end=false)
