@@ -14,14 +14,13 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    
+
 */
 
 #include <sstream>
 #include <fstream>
 #include <complex>
 #include <math.h>
-#include "logging.h"
 #include "svgwriter.h"
 
 SVGWriter::SVGWriter(std::ostream &os, uint32_t width, uint32_t height)
@@ -34,14 +33,14 @@ SVGWriter::SVGWriter(std::ostream &os, uint32_t width, uint32_t height)
 
 SVGWriter::~SVGWriter()
 {
-    m_svg.flush();    
+    m_svg.flush();
     writeFooter();
 }
 
 void SVGWriter::writeHeader()
 {
     m_svg << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 ";
-    m_svg << m_width << " " << m_height << "\">\n"; 
+    m_svg << m_width << " " << m_height << "\">\n";
 }
 
 void SVGWriter::writeFooter()
@@ -86,7 +85,7 @@ void SVGWriter::writeCell(const LayoutItem *item)
     }
     else if (item->m_location == "W")
     {
-        // West 
+        // West
         y += item->m_lefinfo->m_sx;
         rot = 270.0;
     }
@@ -147,7 +146,7 @@ void SVGWriter::writeCell(const LayoutItem *item)
     //  #AAD355 green
     //  #F9C908 yellow
     //  #F25844 red
-    // 
+    //
 
     //m_svg << "<rect x=\"" << x << "\" y=\"" << m_height-y << "\" ";
     //m_svg << "width=\"" << sx << "\" height=\"" << sy << "\" ";
@@ -165,7 +164,7 @@ void SVGWriter::writeCell(const LayoutItem *item)
         double sw = item->m_lefinfo->m_sx * 0.2;
         std::complex<double> p1 = {sw,0};
         std::complex<double> p2 = {0.0,sw};
-        
+
         if (item->m_flipped)
         {
             p1 = {item->m_lefinfo->m_sx - sw,0};
@@ -174,7 +173,7 @@ void SVGWriter::writeCell(const LayoutItem *item)
 
         p1 *= rr;
         p2 *= rr;
-        
+
         p1 += std::complex<double>(x,y);
         p2 += std::complex<double>(x,y);
 

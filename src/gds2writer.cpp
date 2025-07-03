@@ -14,10 +14,10 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    
+
 */
 
-#include "../logging.h"
+#include "logging.h"
 #include "gds2writer.h"
 
 GDS2Writer* GDS2Writer::open(const std::string &filename, const std::string &designName)
@@ -31,9 +31,9 @@ GDS2Writer* GDS2Writer::open(const std::string &filename, const std::string &des
     return new GDS2Writer(f, designName);
 }
 
-GDS2Writer::GDS2Writer(FILE *f, const std::string &designName) 
+GDS2Writer::GDS2Writer(FILE *f, const std::string &designName)
     : m_fout(f), m_designName(designName)
-{   
+{
     doLog(LOG_VERBOSE,"GDS2Writer created\n");
     writeHeader();
 }
@@ -47,7 +47,7 @@ GDS2Writer::~GDS2Writer()
 
 inline void endian_swap(uint16_t &x)
 {
-    x = (x>>8) | 
+    x = (x>>8) |
         (x<<8);
 }
 
@@ -59,7 +59,7 @@ inline void endian_swap(int16_t &x)
 
 inline void endian_swap(uint32_t &x)
 {
-    x = (x>>24) | 
+    x = (x>>24) |
         ((x<<8) & 0x00FF0000) |
         ((x>>8) & 0x0000FF00) |
         (x<<24);
@@ -68,7 +68,7 @@ inline void endian_swap(uint32_t &x)
 inline void endian_swap(int32_t &x)
 {
     uint32_t y = static_cast<uint16_t>(x);
-    x = static_cast<uint32_t>((y>>24) | 
+    x = static_cast<uint32_t>((y>>24) |
         ((y<<8) & 0x00FF0000) |
         ((y>>8) & 0x0000FF00) |
         (y<<24));
@@ -76,7 +76,7 @@ inline void endian_swap(int32_t &x)
 
 inline void endian_swap(uint64_t &x)
 {
-    x = (x>>56) | 
+    x = (x>>56) |
         ((x<<40) & 0x00FF000000000000) |
         ((x<<24) & 0x0000FF0000000000) |
         ((x<<8)  & 0x000000FF00000000) |
@@ -165,7 +165,7 @@ void GDS2Writer::writeHeader()
     writeUint16(0x0000);    // day
     writeUint16(0x0000);    // hour
     writeUint16(0x0000);    // minute
-    writeUint16(0x0000);    // second    
+    writeUint16(0x0000);    // second
 
     // LIBNAME
     writeUint16(0x0012);    // Len 18
@@ -182,10 +182,10 @@ void GDS2Writer::writeHeader()
     writeUint16(0x0014);     // two 8-byte real
     writeUint16(0x0305);    // UNITS id
     writeUint32(0x3E418937);
-    writeUint32(0x4BC6A7EF);    
+    writeUint32(0x4BC6A7EF);
     writeUint32(0x3944B82F);
-    writeUint32(0xA09B5A54);    
-    
+    writeUint32(0xA09B5A54);
+
     // BGNSTR
     writeUint16(0x001C);    // Len
     writeUint16(0x0502);    // BGNSTR id
@@ -202,7 +202,7 @@ void GDS2Writer::writeHeader()
     writeUint16(0x0000);    // minute
     writeUint16(0x0000);    // second
 
-    // STRNAME 
+    // STRNAME
     uint32_t bytes = m_designName.size() + (m_designName.size() % 2);
     writeUint16(bytes+4);   // Len
     writeUint16(0x0606);    // STRNAME id
@@ -277,7 +277,7 @@ void GDS2Writer::writeCell(const LayoutItem *item)
         }
     }
     else if (item->m_location == "W")
-    {        
+    {
         if (item->m_flipped)
         {
             flip = true;
@@ -288,7 +288,7 @@ void GDS2Writer::writeCell(const LayoutItem *item)
             py += item->m_lefinfo->m_sx;
             rot = 270;
         }
-    } 
+    }
     // process corner cells that have NE,NW,SE,SW locations
     else if (item->m_location == "NW")
     {
@@ -324,7 +324,7 @@ void GDS2Writer::writeCell(const LayoutItem *item)
     {
         writeUint16(0x0006);
         writeUint16(0x1A01);    // write STRANS
-        writeUint16(0x8000);     
+        writeUint16(0x8000);
     }
     else
     {
@@ -345,28 +345,28 @@ void GDS2Writer::writeCell(const LayoutItem *item)
             writeUint32(0x5A000000);// mantissa
             writeUint8(0);
             writeUint8(0);
-            writeUint8(0);    
+            writeUint8(0);
             break;
         case 180:
             writeUint8(2+64);       // exponent
             writeUint32(0xB4000000);// mantissa
             writeUint8(0);
             writeUint8(0);
-            writeUint8(0);    
+            writeUint8(0);
             break;
         case 270:
             writeUint8(3+64);       // exponent
             writeUint32(0x10E00000);// mantissa
             writeUint8(0);
             writeUint8(0);
-            writeUint8(0);    
+            writeUint8(0);
             break;
         default:
             writeUint8(64);         // exponent
             writeUint32(0x00000000);// mantissa
             writeUint8(0);
             writeUint8(0);
-            writeUint8(0);          
+            writeUint8(0);
         }
     }
 
@@ -433,10 +433,10 @@ void GDS2Writer::writeCell(const std::string &cellName, int32_t x, int32_t y, or
             break;
         case ROT180:
             orientation = ROT0;
-            break; 
+            break;
         case ROT270:
             orientation = ROT90;
-            break;            
+            break;
         }
     }
     else
@@ -458,28 +458,28 @@ void GDS2Writer::writeCell(const std::string &cellName, int32_t x, int32_t y, or
             writeUint32(0x5A000000);// mantissa
             writeUint8(0);
             writeUint8(0);
-            writeUint8(0);    
+            writeUint8(0);
             break;
         case ROT180:
             writeUint8(2+64);       // exponent
             writeUint32(0xB4000000);// mantissa
             writeUint8(0);
             writeUint8(0);
-            writeUint8(0);    
+            writeUint8(0);
             break;
         case ROT270:
             writeUint8(3+64);       // exponent
             writeUint32(0x10E00000);// mantissa
             writeUint8(0);
             writeUint8(0);
-            writeUint8(0);    
+            writeUint8(0);
             break;
         default:
             writeUint8(64);         // exponent
             writeUint32(0x00000000);// mantissa
             writeUint8(0);
             writeUint8(0);
-            writeUint8(0);          
+            writeUint8(0);
         }
     }
 

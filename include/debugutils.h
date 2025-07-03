@@ -14,21 +14,17 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    
+
 */
 
 #ifndef debugutils_h
 #define debugutils_h
 
-#include <iostream>
-#include "logging.h"
 #include "prlefreader.h"
 
 namespace DebugUtils
 {
-
     void dumpToConsole(const PRLEFReader::LEFCellInfo_t *cell);
-
 }; // namespace
 
 #endif

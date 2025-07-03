@@ -14,30 +14,30 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    
+
 */
 
-#include "debugutils.h"
+#include <iostream>
 #include <sstream>
+
+#include "debugutils.h"
 
 void DebugUtils::dumpToConsole(const PRLEFReader::LEFCellInfo_t *cell)
 {
     std::stringstream ss;
     ss << "\n";
 
-    if (cell != nullptr)
-    {
+    if (cell != nullptr) {
         ss << "Name:    " << cell->m_name.c_str() << "\n";
         ss << "Foreign  " << cell->m_foreign.c_str() << "\n";
         ss << "Width    " << cell->m_sx << "\n";
         ss << "Height   " << cell->m_sy << "\n";
         ss << "Type     " << (cell->m_isFiller ? "FILLER" : "REGULAR") << "\n";
         ss << "Symmetry " << cell->m_symmetry.c_str() << "\n";
-    }
-    else
-    {
+    } else {
         ss << "Error: cell is a nullptr!\n";
     }
-    doLog(LOG_INFO, ss.str());
+
+    std::cout << ss.str();
 }
 

@@ -14,7 +14,7 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    
+
     Changelog:
 
     0.02b - first release.
@@ -24,12 +24,12 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
-#define __PGMVERSION__ "0.02d"
+#include "spdlog/spdlog.h"
+#include "spdlog/fmt/fmt.h"
+#include "cxxopts.hpp"
 
-#include "logging.h"
-
-#include "cxxopts.h"
 #include "prlefreader.h"
 #include "configreader.h"
 #include "layout.h"
@@ -38,13 +38,46 @@
 #include "defwriter.h"
 #include "fillerhandler.h"
 #include "debugutils.h"
-#include "gds2/gds2writer.h"
+#include "gds2writer.h"
 
 int main(int argc, char *argv[])
 {
-    setLogLevel(LOG_INFO);
+    spdlog::set_level(spdlog::level::info);
 
-    cxxopts::Options options("padring","PADRING - Symbiotic EDA GmbH\ngenerates a GDS2 file containing a padring");
+    //------------------------------------------------------------------------------
+    // Program banner
+    //------------------------------------------------------------------------------
+    std::stringstream ss;
+    ss << "\n";
+    ss << "\n         _____          _      _                     ";
+    ss << "\n        |  __ \\        | |    (_)                    ";
+    ss << "\n        | |__) |_ _  __| |_ __ _ _ __   __ _         ";
+    ss << "\n        |  ___/ _` |/ _` | '__| | '_ \\ / _` |        ";
+    ss << "\n        | |  | (_| | (_| | |  | | | | | (_| |        ";
+    ss << "\n        |_|   \\__,_|\\__,_|_|  |_|_| |_|\\__, |        ";
+    ss << "\n                                        __/ |        ";
+    ss << "\n                                       |___/         ";
+    ss << "\n\n";
+
+    std::stringstream version;
+    version << "Version: " << __PGMVERSION__ << " - " << __DATE__;
+    ss << fmt::format("{:^54}", version.str()) << "\n";
+
+    std::stringstream author;
+    author << "Author: " << __AUTHOR__;
+    ss << fmt::format("{:^54}", author.str()) << "\n";
+
+    std::stringstream copyright;
+    std::string date = __DATE__;
+    copyright << "© Crypto Quantique, " << date.substr(date.length() - 4);
+    ss << fmt::format("{:^54}", copyright.str()) << "\n\n";
+
+    std::cout << ss.str();
+
+    //------------------------------------------------------------------------------
+    // Options Management
+    //------------------------------------------------------------------------------
+    cxxopts::Options options("padring","");
 
     options
         .positional_help("config_file")
@@ -65,33 +98,26 @@ int main(int argc, char *argv[])
 
     auto cmdresult = options.parse(argc, argv);
 
-    if ((cmdresult.count("help")>0) || 
+    if ((cmdresult.count("help")>0) ||
         (cmdresult.count("config_file")!=1))
     {
         std::cout << options.help({"", "Group"}) << std::endl;
         exit(0);
     }
 
-    /** set log level according to command line options */
-    if (cmdresult.count("quiet") > 0)
-    {
-        setLogLevel(LOG_QUIET);
-    }
-    else if (cmdresult.count("verbose") > 0)
-    {
-        setLogLevel(LOG_VERBOSE);
+    // Set log level according to command line options
+    if (cmdresult.count("quiet") > 0) {
+        spdlog::set_level(spdlog::level::off);
+    } else if (cmdresult.count("verbose") > 0) {
+        spdlog::set_level(spdlog::level::debug);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////
+    //------------------------------------------------------------------------------
     // Program banner
-    ////////////////////////////////////////////////////////////////////////////////
-    doLog(LOG_INFO,"PADRING version " __PGMVERSION__ " - compiled on " __DATE__ "\n");
-    doLog(LOG_INFO,"Symbiotic EDA GmbH\n\n");
-
-    if (cmdresult.count("lef") < 1)
-    {
-        std::cout << "You must specify at least one LEF file containing the ASIC cells";
-        exit(0);
+    //------------------------------------------------------------------------------
+    if (cmdresult.count("lef") < 1){
+        spdlog::error("You must specify at least one LEF file containing the ASIC cells");
+        return -1;
     }
 
     PadringDB padring;
@@ -104,7 +130,7 @@ int main(int argc, char *argv[])
     for(auto leffile : leffiles)
     {
         std::ifstream lefstream(leffile, std::ifstream::in);
-        doLog(LOG_INFO, "Reading LEF %s\n", leffile.c_str());
+        spdlog::info("Reading LEF {}", leffile.c_str());
         padring.m_lefreader.parse(lefstream);
         if (padring.m_lefreader.m_lefDatabaseUnits > 0.0)
         {
@@ -112,7 +138,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    doLog(LOG_INFO,"%d cells read\n", padring.m_lefreader.m_cells.size());
+    spdlog::info("{:d} cells read", padring.m_lefreader.m_cells.size());
 
     auto& v = cmdresult["config_file"].as<std::vector<std::string> >();
     std::string configFileName = v[0];
@@ -120,8 +146,8 @@ int main(int argc, char *argv[])
     std::ifstream configStream(configFileName, std::ifstream::in);
     if (!padring.parse(configStream))
     {
-        doLog(LOG_ERROR,"Cannot parse configuration file -- aborting\n");
-        exit(1);
+        spdlog::error("Cannot parse configuration file -- aborting");
+        return -1;
     }
 
     // if an explicit filler cell prefix was not given,
@@ -131,7 +157,7 @@ int main(int argc, char *argv[])
     {
         for(auto lefCell : padring.m_lefreader.m_cells)
         {
-            if (lefCell.second->m_isFiller) 
+            if (lefCell.second->m_isFiller)
             {
                 fillerHandler.addFillerCell(lefCell.first, lefCell.second->m_sx);
             }
@@ -143,34 +169,34 @@ int main(int argc, char *argv[])
         for(auto lefCell : padring.m_lefreader.m_cells)
         {
             // match prefix
-            if (lefCell.first.rfind(padring.m_fillerPrefix, 0) == 0) 
+            if (lefCell.first.rfind(padring.m_fillerPrefix, 0) == 0)
             {
                 fillerHandler.addFillerCell(lefCell.first, lefCell.second->m_sx);
             }
         }
     }
 
-    doLog(LOG_INFO, "Found %d filler cells\n", fillerHandler.getCellCount());
+    spdlog::info("Found {:d} filler cells", fillerHandler.getCellCount());
 
     if (fillerHandler.getCellCount() == 0)
     {
-        doLog(LOG_ERROR, "Cannot proceed without filler cells. Please use the --filler option to explicitly specify a filler cell prefix\n");
-        exit(1);
+        spdlog::error("Cannot proceed without filler cells. Please use the --filler option to explicitly specify a filler cell prefix");
+        return -1;
     }
 
     // check die size
     if ((padring.m_dieWidth < 1.0e-6) || (padring.m_dieHeight < 1.0e-6))
     {
-        doLog(LOG_ERROR, "Die area was not specified! - aborting.\n");
-        exit(1);
+        spdlog::error("Die area was not specified");
+        return -1;
     }
 
     // generate report
-    doLog(LOG_INFO,"Die area        : %f x %f microns\n", padring.m_dieWidth, padring.m_dieHeight);
-    doLog(LOG_INFO,"Grid            : %f microns\n", padring.m_grid);
-    doLog(LOG_INFO,"Padring cells   : %d\n", padring.getPadCellCount());
-    doLog(LOG_INFO,"Smallest filler : %f microns\n", fillerHandler.getSmallestWidth());
-    
+    spdlog::info("Die area        : {0:f} x {1:f} um", padring.m_dieWidth, padring.m_dieHeight);
+    spdlog::info("Grid            : {:f} um", padring.m_grid);
+    spdlog::info("Padring cells   : {}", padring.getPadCellCount());
+    spdlog::info("Smallest filler : {:f} um", fillerHandler.getSmallestWidth());
+
     padring.doLayout();
 
     // get corners
@@ -183,12 +209,12 @@ int main(int argc, char *argv[])
     std::ofstream svgos;
     if (cmdresult.count("svg") != 0)
     {
-        doLog(LOG_INFO,"Writing padring to SVG file: %s\n", cmdresult["svg"].as<std::string>().c_str());
+        spdlog::info("Writing padring to SVG file: {}", cmdresult["svg"].as<std::string>().c_str());
         svgos.open(cmdresult["svg"].as<std::string>(), std::ofstream::out);
         if (!svgos.is_open())
         {
-            doLog(LOG_ERROR, "Cannot open SVG file for writing!\n");
-            exit(1);
+            spdlog::error("Cannot open SVG file for writing");
+            return -1;
         }
     }
 
@@ -196,12 +222,12 @@ int main(int argc, char *argv[])
     std::ofstream defos;
     if (cmdresult.count("def") != 0)
     {
-        doLog(LOG_INFO,"Writing padring to DEF file: %s\n", cmdresult["def"].as<std::string>().c_str());
+        spdlog::info("Writing padring to DEF file: {}", cmdresult["def"].as<std::string>().c_str());
         defos.open(cmdresult["def"].as<std::string>(), std::ofstream::out);
         if (!defos.is_open())
         {
-            doLog(LOG_ERROR, "Cannot open DEF file for writing!\n");
-            exit(1);
+            spdlog::error("Cannot open DEF file for writing");
+            return -1;
         }
     }
 
@@ -212,18 +238,19 @@ int main(int argc, char *argv[])
 
     // emit GDS2 and SVG
     GDS2Writer *writer = nullptr;
-    
-    if (cmdresult.count("output")> 0)
+
+    if (cmdresult.count("output") > 0)
     {
-        doLog(LOG_INFO,"Writing padring to GDS2 file: %s\n", cmdresult["output"].as<std::string>().c_str());
-        writer = GDS2Writer::open(cmdresult["output"].as<std::string>(),
-            padring.m_designName);
+        spdlog::info("Writing padring to GDS2 file: {}", cmdresult["output"].as<std::string>().c_str());
+        writer = GDS2Writer::open(cmdresult["output"].as<std::string>(), padring.m_designName);
     }
-    
-    if (writer != nullptr) writer->writeCell(topleft);
-    if (writer != nullptr) writer->writeCell(topright);
-    if (writer != nullptr) writer->writeCell(bottomleft);
-    if (writer != nullptr) writer->writeCell(bottomright);
+
+    if (writer != nullptr) {
+        writer->writeCell(topleft);
+        writer->writeCell(topright);
+        writer->writeCell(bottomleft);
+        writer->writeCell(bottomright);
+    }
 
     svg.writeCell(topleft);
     svg.writeCell(topright);
@@ -270,11 +297,11 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    doLog(LOG_ERROR, "Cannot find filler cell that fits remaining width %f\n", space);
-                    exit(1);
+                    spdlog::error("Cannot find filler cell that fits remaining width {:f}", space);
+                    return -1;
                 }
             }
-        }        
+        }
     }
 
     double south_y = 0;
@@ -283,8 +310,8 @@ int main(int argc, char *argv[])
         if (item->m_ltype == LayoutItem::TYPE_CELL)
         {
             if (writer != nullptr) writer->writeCell(item);
-            svg.writeCell(item);  
-            def.writeCell(item);          
+            svg.writeCell(item);
+            def.writeCell(item);
         }
         else if ((item->m_ltype == LayoutItem::TYPE_FIXEDSPACE) || (item->m_ltype == LayoutItem::TYPE_FLEXSPACE))
         {
@@ -312,11 +339,11 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    doLog(LOG_ERROR, "Cannot find filler cell that fits remaining width %f\n", space);
-                    exit(1);
+                    spdlog::error("Cannot find filler cell that fits remaining width {:f}", space);
+                    return -1;
                 }
             }
-        }        
+        }
     }
 
     double west_x = 0;
@@ -354,11 +381,11 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    doLog(LOG_ERROR, "Cannot find filler cell that fits remaining width %f\n", space);
-                    exit(1);
+                    spdlog::error("Cannot find filler cell that fits remaining width {:f}", space);
+                    return -1;
                 }
             }
-        }        
+        }
     }
 
     double east_x = padring.m_dieWidth;
@@ -396,18 +423,20 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    doLog(LOG_ERROR, "Cannot find filler cell that fits remaining width %f\n", space);
-                    exit(1);
+                    spdlog::error("Cannot find filler cell that fits remaining width {:f}", space);
+                    return -1;
                 }
             }
-        }        
+        }
     }
 
     if (writer != nullptr) delete writer;
 
-    for(auto cell : padring.m_lefreader.m_cells)
-    {
-        DebugUtils::dumpToConsole(cell.second);
+    if (spdlog::get_level() < spdlog::level::info) {
+        spdlog::debug("Printing cell definitions");
+        for (auto cell : padring.m_lefreader.m_cells) {
+            DebugUtils::dumpToConsole(cell.second);
+        }
     }
 
     return 0;

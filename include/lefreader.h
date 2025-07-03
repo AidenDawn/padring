@@ -14,7 +14,7 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    
+
 */
 
 #ifndef lef_reader_h
@@ -26,7 +26,7 @@
 #include<iostream>
 #include<regex>
 
-#include "../linereader.h"
+#include "linereader.h"
 
 /** reads a blif stream and generates callbacks for every relevant
     item, such as .input .output etc.
@@ -35,7 +35,7 @@ class LEFReader
 {
 public:
     LEFReader() {}
-    
+
     virtual ~LEFReader() {}
 
     enum token_t
@@ -99,7 +99,7 @@ public:
     /** callback for layer pitch */
     virtual void onLayerPitch(double pitch) {}
 
-    /** callback for layer offset */    
+    /** callback for layer offset */
     virtual void onLayerOffset(double offset) {}
 
     /** callback for layer routing direction */
@@ -108,7 +108,7 @@ public:
     /** callback for layer trace width */
     virtual void onLayerWidth(double width) {}
 
-    /** callback for layer trace max width */    
+    /** callback for layer trace max width */
     virtual void onLayerMaxWidth(double maxWidth) {}
 
     /** callback for units database microns */
@@ -131,12 +131,12 @@ protected:
     bool parsePinName(std::string &outName);
     bool parseDirection();
     bool parseUse();
-    
+
     bool parsePort();
     bool parsePortLayer();
     bool parsePortLayerItem();
     bool parseRect();
-    
+
     bool parseLayer();
     bool parseLayerItem();
     bool parseLayerType();

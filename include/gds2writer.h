@@ -14,7 +14,7 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    
+
 */
 
 #ifndef gds2writer_h
@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <string>
 
-#include "../layout.h"
+#include "layout.h"
 
 class GDS2Writer
 {
@@ -43,7 +43,7 @@ public:
 protected:
     void writeHeader();
     void writeEpilog();
-    
+
     void writeUint32(uint32_t v);
     void writeUint16(uint16_t v);
     void writeUint8(uint8_t v);
@@ -58,7 +58,7 @@ protected:
     uint32_t writeString(const std::string &str);
 
     GDS2Writer(FILE *f, const std::string &designName);
-    
+
     FILE        *m_fout;        ///< GDS2 file handle
     uint32_t    m_words;        ///< words written
     std::string m_designName;   ///< set the design name

@@ -14,7 +14,7 @@
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
     OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-    
+
 */
 
 #ifndef prlefreader_h
@@ -23,7 +23,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "lef/lefreader.h"
+#include "lefreader.h"
 
 /** LEF Reader + cell database */
 class PRLEFReader : public LEFReader
@@ -62,12 +62,12 @@ public:
         double          m_sx;       ///< size in microns
         double          m_sy;       ///< size in microns
         std::string     m_symmetry; ///< symmetry string taken from LEF.
-        bool            m_isFiller;        
+        bool            m_isFiller;
     };
 
     LEFCellInfo_t *getCellByName(const std::string &name) const;
     LEFCellInfo_t *m_parseCell;   ///< current cell being parsed
-    
+
     std::unordered_map<std::string, LEFCellInfo_t*> m_cells;
 
     double m_lefDatabaseUnits;      ///< database units in microns
